@@ -236,18 +236,22 @@ only, and then per population(capita) versions of each.
 data(Whickham)
 ```
 
-\####3.1
+#### 3.1
 
 This is an observational study because the researchers did not assign
 participants to smoke or not smoke. They simply observed and recorded
 their existing smoking status at baseline and followed up 20 years
 later.
 
-\####3.2 There is `1314` observations. Each observation represents one
+#### 3.2
+
+There is `1314` observations. Each observation represents one
 participant in the study with their smoking status recorded at baseline
 and survival outcome after 20 years.
 
-\####3.3 There is `3` observations : outcome, smoker, age
+#### 3.3
+
+There is `3` observations : outcome, smoker, age
 
 specifically they are:
 
@@ -291,17 +295,20 @@ Whickham %>%
 
 ![](lab-06_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->
 
-\####3.4 We would expect smokers to have worse health outcomes, a higher
+#### 3.4
+
+We would expect smokers to have worse health outcomes, a higher
 proportion of smokers should be dead after 20 years compared to
 non-smokers.
 
-\####3.5
+#### 3.5
 
 ``` r
 Whickham %>%
   ggplot(aes(x = smoker, fill = outcome)) +
   geom_bar(position = "fill") +
   scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("Alive" = "#56B4E9", "Dead" = "#E69F00")) +
   labs(
     y = "Proportion",
     x = "Smoker"
@@ -331,7 +338,7 @@ Whickham %>%
 the result likely shows that smokers have a **higher** survival rate
 than non-smokers, which is contradictive with expectation.
 
-\####3.6
+#### 3.6
 
 ``` r
 Whickham <- Whickham %>%
@@ -342,7 +349,7 @@ Whickham <- Whickham %>%
   ))
 ```
 
-\####3.7
+#### 3.7
 
 ``` r
 Whickham %>%
@@ -390,4 +397,4 @@ least no lower). I think that is the Simpson’s Paradox we talked in this
 module. I think The non-smoker group has a larger proportion of elderly
 people because many older individuals never smoked or because they had
 already quit. Since older people naturally have a higher death rate,
-when we mix all ages together, the result will be wired.
+when we mix all ages together, the result will be weird.
