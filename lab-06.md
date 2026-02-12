@@ -114,14 +114,287 @@ lines. Second I removed the legend and labeled each line at its endpoint
 (I think it much straight forward). Finally, I adjusted the spacing
 between the axis titles and tick marks, removed unnecessary minor
 gridlines, centered the title, and added clearer axis labels with
-percentage units to improve overall readability. \### Exercise 2
+percentage units to improve overall readability.
 
-Remove this text, and add your answer for Exercise 1 here. Add code
-chunks as needed. Don’t forget to label your code chunk. Do not use
-spaces in code chunk labels.
+### Exercise 2
+
+For the original visualization, First, I think the information is
+seriously overloaded. All 216 countries are plotted at the same time,
+which makes the bar chart’s x-axis and the pie chart slices almost
+impossible to distinguish. Second, the pie chart and density figure are
+not appropriate chart type here.Becasue there are this many categories
+with an extremely skewed distribution (I mean one or four contries
+almost have the whole part. Also I think the 3D effect make this even
+worse). Third,it’s unclear what story the visualization is trying to
+tell. Is it comparing total production across countries? Highlighting
+the structural difference between capture and aquaculture? Or
+emphasizing some countries dominance in global fishery production?
+
+Here is my improvement plan: - Define a clear narrative goal: compare
+the top fishery-producing countries and show the breakdown of capture
+vs. aquaculture.
+
+- Filter to only the top 5 countries by total production to avoid
+  information overload, with the rest grouped as “Other”
+
+<span style="color: deepskyblue;"> *(Comments from Holland, Acutually it
+is top 10 first, but it looks not so good, because, the top 6 to 10 is
+too small and seem to be same with each other,so I change it into top
+5)* </span>  
+
+- Replace the chart with a horizontal stacked bar chart, makes it easy
+  to compare both total production and the capture/aquaculture
+  structure.
+
+- Order countries by total production using.
+
+- Use only two fill colors to clearly distinguish capture and
+  aquaculture.
+
+<span style="color: deepskyblue;"> *(ALso use the color associated with
+fish and ocean* </span>
+
+- Simplify the x-axis labels using millions (e.g., “20M”) instead of raw
+  numbers like “20,000,000”.
+
+- Add a descriptive title and subtitle to guide the reader toward the
+  main takeaway
+
+``` r
+fisheries <- read_csv("data/fisheries.csv")
+```
+
+    ## Rows: 216 Columns: 4
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): country
+    ## dbl (3): capture, aquaculture, total
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+fisheries %>%
+  filter(total >= 100000) %>%
+  mutate(
+    country = ifelse(rank(-total) <= 5, country, "Other")
+  ) %>%
+  group_by(country) %>%
+  summarise(
+    capture = sum(capture),
+    aquaculture = sum(aquaculture),
+    total = sum(total)
+  ) %>%
+  pivot_longer(cols = c(capture, aquaculture), 
+               names_to = "type", values_to = "tonnage") %>%
+  mutate(
+    country = fct_reorder(country, tonnage, .fun = sum),
+    country = fct_relevel(country, "Other", after = 0),
+    type = str_to_title(type)
+  ) %>%
+  ggplot(aes(x = tonnage, y = country, fill = type)) +
+  geom_col(position = "stack") +
+  scale_fill_manual(values = c("Aquaculture" = "#1b6b93", "Capture" = "#58b4d1")) +
+  scale_x_continuous(labels = scales::label_number(scale = 1e-6, suffix = "M")) +
+  labs(
+    title = "Top 5 Fishery Producing Countries (2016)",
+    subtitle = "Global fisheries have a skewed distribution",
+    x = "Production (million tons)",
+    y = NULL,
+    fill = "Type"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    legend.position = "top"
+  )
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+For the aspirational improvements, I’ve also thinking about making this
+more interactive. I’ve seen a lot of cool interactive charts on
+websites, and my idea is that we could create a choropleth map where
+color intensity represents production levels. so you can immediately see
+which countries produce the most just by looking at the map. And when
+you hover over a specific country, it would pop up with the exact
+numbers and ranking.
+
+Of course, one issue with just looking at total production is that
+countries with larger populations would naturally have higher numbers.
+(These may goe beyond our current topic) If we can bring in additional
+data. We could set up like six toggle options that let users switch
+between different views: total production, capture only, aquaculture
+only, and then per population(capita) versions of each.
 
 ### Exercise 3
 
-…
+``` r
+data(Whickham)
+```
 
-Add exercise headings as needed.
+#### 3.1
+
+This is an observational study because the researchers did not assign
+participants to smoke or not smoke. They simply observed and recorded
+their existing smoking status at baseline and followed up 20 years
+later.
+
+#### 3.2
+
+There is `1314` observations. Each observation represents one
+participant in the study with their smoking status recorded at baseline
+and survival outcome after 20 years.
+
+#### 3.3
+
+There is `3` observations : outcome, smoker, age
+
+specifically they are:
+
+outcome which is a factor: Alive / Dead
+
+smoker which is a factor: Yes / No
+
+age which is a numerical : age at baseline
+
+``` r
+Whickham %>%
+  ggplot(aes(x = outcome, fill = outcome)) +
+  geom_bar() +
+  scale_fill_manual(values = c("Alive" = "#56B4E9", "Dead" = "#E69F00")) +
+  labs(title = "Distribution of Health Outcome") +
+theme_minimal() +
+  theme(legend.position = "none")
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+Whickham %>%
+  ggplot(aes(x = smoker, fill = smoker)) +
+  geom_bar() +
+  scale_fill_manual(values = c("Yes" = "#D55E00", "No" = "#009E73")) +
+  labs(title = "Distribution of Smoking Status") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+
+``` r
+Whickham %>%
+  ggplot(aes(x = age)) +
+  geom_density(fill = "#0072B2", alpha = 0.6) +
+  labs(title = "Distribution of Age at Baseline") +
+  theme_minimal()
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->
+
+#### 3.4
+
+We would expect smokers to have worse health outcomes, a higher
+proportion of smokers should be dead after 20 years compared to
+non-smokers.
+
+#### 3.5
+
+``` r
+Whickham %>%
+  ggplot(aes(x = smoker, fill = outcome)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("Alive" = "#56B4E9", "Dead" = "#E69F00")) +
+  labs(
+    y = "Proportion",
+    x = "Smoker"
+  ) +
+  theme_minimal()
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+# Conditional probabilities
+Whickham %>%
+  count(smoker, outcome) %>%
+  group_by(smoker) %>%
+  mutate(prop = n / sum(n))
+```
+
+    ## # A tibble: 4 × 4
+    ## # Groups:   smoker [2]
+    ##   smoker outcome     n  prop
+    ##   <fct>  <fct>   <int> <dbl>
+    ## 1 No     Alive     502 0.686
+    ## 2 No     Dead      230 0.314
+    ## 3 Yes    Alive     443 0.761
+    ## 4 Yes    Dead      139 0.239
+
+the result likely shows that smokers have a **higher** survival rate
+than non-smokers, which is contradictive with expectation.
+
+#### 3.6
+
+``` r
+Whickham <- Whickham %>%
+  mutate(age_cat = case_when(
+    age <= 44 ~ "18-44",
+    age > 44 & age <= 64 ~ "45-64",
+    age > 64 ~ "65+"
+  ))
+```
+
+#### 3.7
+
+``` r
+Whickham %>%
+  ggplot(aes(x = smoker, fill = outcome)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("Alive" = "#56B4E9", "Dead" = "#E69F00")) +
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~ age_cat) +
+  labs(
+    y = "Proportion",
+    x = "Smoker"
+  ) +
+  theme_minimal()
+```
+
+![](lab-06_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+Whickham %>%
+  count(smoker, age_cat, outcome) %>%
+  group_by(smoker, age_cat) %>%
+  mutate(prop = n / sum(n))
+```
+
+    ## # A tibble: 12 × 5
+    ## # Groups:   smoker, age_cat [6]
+    ##    smoker age_cat outcome     n   prop
+    ##    <fct>  <chr>   <fct>   <int>  <dbl>
+    ##  1 No     18-44   Alive     327 0.965 
+    ##  2 No     18-44   Dead       12 0.0354
+    ##  3 No     45-64   Alive     147 0.735 
+    ##  4 No     45-64   Dead       53 0.265 
+    ##  5 No     65+     Alive      28 0.145 
+    ##  6 No     65+     Dead      165 0.855 
+    ##  7 Yes    18-44   Alive     270 0.947 
+    ##  8 Yes    18-44   Dead       15 0.0526
+    ##  9 Yes    45-64   Alive     167 0.676 
+    ## 10 Yes    45-64   Dead       80 0.324 
+    ## 11 Yes    65+     Alive       6 0.12  
+    ## 12 Yes    65+     Dead       44 0.88
+
+After faceting by age group, we can see that within each age group,
+smokers actually have a higher mortality rate than non-smokers (or at
+least no lower). I think that is the Simpson’s Paradox we talked in this
+module. I think The non-smoker group has a larger proportion of elderly
+people because many older individuals never smoked or because they had
+already quit. Since older people naturally have a higher death rate,
+when we mix all ages together, the result will be weird.
