@@ -1,7 +1,7 @@
 Lab 06 - Ugly charts and Simpson’s paradox
 ================
-Insert your name here
-Insert date here
+Holland Sun
+2026-Feb
 
 ### Load packages and data
 
